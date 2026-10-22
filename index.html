@@ -1,0 +1,975 @@
+<!-- 
+Concept: "Neural Console & AI Lab Dashboard"
+A futuristic AI/ML engineering dashboard interface tailored for an AI & Machine Learning specialist.
+Features live neural network canvas background, interactive AI parameter playground simulating her Water Analyzer ML model, live telemetry status, glassmorphism bento layout, and terminal UI aesthetics.
+-->
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taniya Kumari | AI & Machine Learning Engineer</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            400: '#38bdf8',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            900: '#0f172a',
+                        },
+                        neural: {
+                            accent: '#6366f1',
+                            glow: '#a855f7',
+                            cyan: '#06b6d4',
+                            dark: '#030712',
+                            card: 'rgba(15, 23, 42, 0.65)',
+                            border: 'rgba(56, 189, 248, 0.15)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 3s infinite alternate',
+                        'scanline': 'scanline 8s linear infinite',
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%': { boxShadow: '0 0 15px rgba(6, 182, 212, 0.2)' },
+                            '100%': { boxShadow: '0 0 35px rgba(168, 85, 247, 0.4)' },
+                        },
+                        scanline: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(1000%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom UI Scrollbar & Glassmorphism Details */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #06b6d4;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-panel-interactive {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-panel-interactive:hover {
+            border-color: rgba(6, 182, 212, 0.4);
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .neon-border {
+            position: relative;
+        }
+        .neon-border::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            background: linear-gradient(90deg, #06b6d4, #a855f7, #06b6d4);
+            border-radius: inherit;
+            z-index: -1;
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+        .neon-border:hover::before {
+            opacity: 0.8;
+        }
+
+        /* Terminal styling */
+        .terminal-header {
+            background: rgba(30, 41, 59, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Custom Range Input styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: rgba(30, 41, 59, 0.8);
+            height: 6px;
+            border-radius: 3px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #06b6d4;
+            cursor: pointer;
+            box-shadow: 0 0 10px #06b6d4;
+            transition: all 0.15s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #38bdf8;
+        }
+    </style>
+</head>
+<body class="bg-neural-dark text-slate-200 font-sans antialiased selection:bg-cyan-500 selection:text-black min-h-screen relative overflow-x-hidden">
+
+    <!-- Interactive Canvas Mesh Background -->
+    <canvas id="neuralCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+    <!-- Top Status Header / Telemetry Bar -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-slate-800/80 px-4 lg:px-8 py-3 transition-all">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- Brand / Console ID -->
+            <div class="flex items-center space-x-3">
+                <div class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-xs tracking-wider text-cyan-400 font-semibold uppercase">TANIYA_KUMARI // AI_LAB_V4.2</span>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center space-x-6 font-mono text-xs tracking-wide">
+                <a href="#overview" class="text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
+                    <span class="text-cyan-500">01.</span>OVERVIEW
+                </a>
+                <a href="#playground" class="text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
+                    <span class="text-cyan-500">02.</span>AI_SIMULATOR
+                </a>
+                <a href="#projects" class="text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
+                    <span class="text-cyan-500">03.</span>PROJECTS
+                </a>
+                <a href="#experience" class="text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
+                    <span class="text-cyan-500">04.</span>EXPERIENCE
+                </a>
+            </nav>
+
+            <!-- Quick Action CTA -->
+            <div class="flex items-center space-x-3">
+                <a href="#contact" class="px-3.5 py-1.5 rounded-md text-xs font-mono bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/20 hover:border-cyan-400 transition-all duration-200">
+                    CONNECT_TERMINAL
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- HERO SECTION: Neural Telemetry & Profile Overview -->
+        <section id="overview" class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-4">
+            
+            <!-- Left Console Bio Card (8 Cols) -->
+            <div class="lg:col-span-8 glass-panel rounded-2xl p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between">
+                <!-- Decorative Top Right Spec Sheet -->
+                <div class="absolute top-4 right-4 text-right font-mono text-[10px] text-slate-500 hidden sm:block">
+                    <div>LATENCY: 12ms</div>
+                    <div>STATUS: ACTIVE_GRADUATION_2027</div>
+                    <div>SPECIALIZATION: AI_&amp;_ML</div>
+                </div>
+
+                <div>
+                    <!-- Seniority & Status Tag -->
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 mb-6">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="font-mono text-xs text-slate-300">B.Tech CS (AI & ML) • 4th Year Engineer</span>
+                    </div>
+
+                    <!-- Name & Headline -->
+                    <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-4">
+                        Taniya <span class="text-gradient">Kumari</span>
+                    </h1>
+                    
+                    <p class="text-base sm:text-lg text-slate-300 max-w-2xl font-normal leading-relaxed mb-8">
+                        Motivated and detail-oriented Artificial Intelligence & Machine Learning engineer passionate about architecting <span class="text-cyan-300 font-medium">predictive analytics</span>, <span class="text-purple-300 font-medium">machine learning models</span>, and data-driven intelligent solutions.
+                    </p>
+                </div>
+
+                <!-- Core Stats Bar / Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-slate-800/80 font-mono">
+                    <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-800">
+                        <div class="text-[10px] text-slate-500 uppercase tracking-wider">FOCUS</div>
+                        <div class="text-sm font-semibold text-cyan-400 mt-1">AI & ML Models</div>
+                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-800">
+                        <div class="text-[10px] text-slate-500 uppercase tracking-wider">CORE TECH</div>
+                        <div class="text-sm font-semibold text-purple-400 mt-1">Python / Scikit</div>
+                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-800">
+                        <div class="text-[10px] text-slate-500 uppercase tracking-wider">EDUCATION</div>
+                        <div class="text-sm font-semibold text-emerald-400 mt-1">Expected 2027</div>
+                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-800">
+                        <div class="text-[10px] text-slate-500 uppercase tracking-wider">FELLOWSHIP</div>
+                        <div class="text-sm font-semibold text-amber-400 mt-1">USF (5 Years)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Terminal / Contact Quick Deck (4 Cols) -->
+            <div class="lg:col-span-4 glass-panel rounded-2xl p-6 flex flex-col justify-between space-y-6">
+                <div>
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4 font-mono text-xs text-slate-400">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                            SYSTEM_NODES
+                        </span>
+                        <span class="text-emerald-400">ONLINE</span>
+                    </div>
+
+                    <div class="space-y-3 font-mono text-xs">
+                        <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 hover:border-cyan-500/40 transition-colors">
+                            <span class="text-slate-500 block text-[10px] uppercase">EMAIL NODE</span>
+                            <a href="mailto:Taniyakuamri8219@gmail.com" class="text-slate-200 hover:text-cyan-400 transition-colors break-all font-semibold">
+                                Taniyakuamri8219@gmail.com
+                            </a>
+                        </div>
+
+                        <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 hover:border-cyan-500/40 transition-colors">
+                            <span class="text-slate-500 block text-[10px] uppercase">PHONE DIRECT</span>
+                            <a href="tel:+918219539564" class="text-slate-200 hover:text-cyan-400 transition-colors font-semibold">
+                                (+91) 8219539564
+                            </a>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 pt-2">
+                            <a href="https://github.com/taniya19231" target="_blank" rel="noopener noreferrer" class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 hover:border-purple-500/40 hover:bg-slate-800/80 transition-all flex items-center justify-center gap-2 group">
+                                <svg class="w-4 h-4 text-slate-400 group-hover:text-purple-400" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                                <span>GitHub</span>
+                            </a>
+                            <a href="https://linkedin.com/in/taniya-kumari" target="_blank" rel="noopener noreferrer" class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 hover:border-cyan-500/40 hover:bg-slate-800/80 transition-all flex items-center justify-center gap-2 group">
+                                <svg class="w-4 h-4 text-slate-400 group-hover:text-cyan-400" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-1.1.7-1.8 1.7-1.8 1 0 1.5.7 1.5 1.8v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+                                <span>LinkedIn</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Tagline -->
+                <div class="pt-4 border-t border-slate-800 font-mono text-[11px] text-slate-400 flex items-center justify-between">
+                    <span>SPECIALIZATION:</span>
+                    <span class="text-cyan-400 font-semibold">CSE (AI &amp; ML)</span>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SIGNATURE INTERACTIVE ELEMENT: AI MODEL PARAMETER PLAYGROUND -->
+        <section id="playground" class="glass-panel rounded-2xl p-6 sm:p-8 neon-border relative overflow-hidden">
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <div class="inline-flex items-center gap-2 font-mono text-xs text-cyan-400 mb-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        FEATURED INTERACTIVE MODEL
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Water Quality AI Analyzer Simulator</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Simulating Taniya's machine learning classification pipeline built with Scikit-Learn & NumPy.</p>
+                </div>
+                <div class="flex items-center gap-2 font-mono text-xs bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-300">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                    <span>MODEL: Random Forest / Scikit-Learn</span>
+                </div>
+            </div>
+
+            <!-- Simulator Interactive Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                
+                <!-- Controls Side (7 cols) -->
+                <div class="lg:col-span-7 space-y-5 bg-slate-900/60 p-5 sm:p-6 rounded-xl border border-slate-800">
+                    <div class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-2 flex justify-between">
+                        <span>Input Water Quality Parameters</span>
+                        <span class="text-cyan-400">Live Adjustment</span>
+                    </div>
+
+                    <!-- Slider 1: pH Level -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-mono">
+                            <label for="ph-range" class="text-slate-300">pH Level</label>
+                            <span id="ph-val" class="text-cyan-400 font-bold">7.2</span>
+                        </div>
+                        <input type="range" id="ph-range" min="0" max="14" step="0.1" value="7.2" class="w-full">
+                        <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                            <span>0 (Acidic)</span>
+                            <span>7 (Neutral)</span>
+                            <span>14 (Alkaline)</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 2: Turbidity (NTU) -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-mono">
+                            <label for="turb-range" class="text-slate-300">Turbidity (NTU)</label>
+                            <span id="turb-val" class="text-cyan-400 font-bold">3.5</span>
+                        </div>
+                        <input type="range" id="turb-range" min="0" max="15" step="0.1" value="3.5" class="w-full">
+                        <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                            <span>0 NTU (Clear)</span>
+                            <span>5 NTU (Safe limit)</span>
+                            <span>15 NTU (Murky)</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 3: Dissolved Oxygen (mg/L) -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-mono">
+                            <label for="do-range" class="text-slate-300">Dissolved Oxygen (mg/L)</label>
+                            <span id="do-val" class="text-cyan-400 font-bold">6.8</span>
+                        </div>
+                        <input type="range" id="do-range" min="0" max="12" step="0.1" value="6.8" class="w-full">
+                        <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                            <span>0 mg/L (Poor)</span>
+                            <span>6.5+ mg/L (Optimal)</span>
+                            <span>12 mg/L</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 4: Total Dissolved Solids (TDS ppm) -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-mono">
+                            <label for="tds-range" class="text-slate-300">TDS (ppm)</label>
+                            <span id="tds-val" class="text-cyan-400 font-bold">320</span>
+                        </div>
+                        <input type="range" id="tds-range" min="50" max="1200" step="10" value="320" class="w-full">
+                        <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                            <span>50 ppm</span>
+                            <span>500 ppm (Upper Desirable)</span>
+                            <span>1200 ppm</span>
+                        </div>
+                    </div>
+
+                    <button id="run-inference-btn" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold font-mono text-sm rounded-lg shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center space-x-2 mt-4">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>RUN CLASSIFICATION INFERENCE</span>
+                    </button>
+                </div>
+
+                <!-- Prediction Output Canvas & Metrics (5 cols) -->
+                <div class="lg:col-span-5 bg-slate-950/80 p-6 rounded-xl border border-slate-800 flex flex-col items-center justify-center text-center relative">
+                    
+                    <!-- Status Indicator Badge -->
+                    <div class="text-[10px] font-mono uppercase text-slate-500 tracking-widest mb-4">CLASSIFICATION INFERENCE RESULT</div>
+                    
+                    <!-- Result Display Ring -->
+                    <div class="relative w-36 h-36 flex items-center justify-center my-2">
+                        <canvas id="confidenceChart" width="150" height="150" class="absolute inset-0"></canvas>
+                        <div class="z-10 flex flex-col items-center">
+                            <span id="result-status" class="text-2xl font-black tracking-wider text-emerald-400">POTABLE</span>
+                            <span id="result-confidence" class="font-mono text-xs text-slate-400">96.4% CONF.</span>
+                        </div>
+                    </div>
+
+                    <!-- Param breakdown details -->
+                    <div id="result-explanation" class="mt-4 p-3 bg-slate-900/90 rounded-lg text-xs font-mono text-slate-300 border border-slate-800/80 w-full">
+                        Water sample complies with safety standard metrics for drinking water.
+                    </div>
+
+                    <!-- Tech Badge Footer -->
+                    <div class="mt-4 flex flex-wrap gap-1.5 justify-center">
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">Python</span>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">Scikit-Learn</span>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">Pandas</span>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">Streamlit</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ACADEMIC PROJECTS & APPLICATIONS -->
+        <section id="projects" class="space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="font-mono text-xs text-cyan-400 uppercase tracking-widest">// DEPLOYED_WORK</div>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Academic AI Projects</h2>
+                </div>
+                <span class="font-mono text-xs text-slate-500">2 SYSTEMS DEPLOYED</span>
+            </div>
+
+            <!-- Grid of Projects -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Project 1: Water Analyzer Application -->
+                <div class="glass-panel glass-panel-interactive rounded-2xl p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-2.5 py-1 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-mono font-semibold">
+                                AI / MACHINE LEARNING
+                            </span>
+                            <span class="text-xs font-mono text-slate-500">ML Classification</span>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
+                            Water Analyzer Application
+                        </h3>
+
+                        <p class="text-sm text-slate-300 leading-relaxed mb-6">
+                            Developed an AI-powered application to analyze water quality based on multiple key water parameters. Collected, cleaned, and preprocessed water quality datasets for accurate machine learning analysis and prediction.
+                        </p>
+
+                        <!-- Key Highlights -->
+                        <ul class="space-y-2 text-xs text-slate-400 font-mono mb-6">
+                            <li class="flex items-center gap-2">
+                                <span class="text-cyan-400">►</span> Data preprocessing &amp; cleaning pipeline
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-cyan-400">►</span> Multi-parameter water evaluation
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-cyan-400">►</span> Streamlit &amp; Web UI deployment
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Tech Stack Tags -->
+                    <div class="pt-4 border-t border-slate-800/80 flex flex-wrap gap-2 font-mono text-xs">
+                        <span class="px-2.5 py-1 rounded bg-slate-900 text-slate-300 border border-slate-800">Python</span>
+                        <span class="px-2.5 py-1 rounded bg-slate-900 text-slate-300 border border-slate-800">Machine Learning</span>
+                        <span class="px-2.5 py-1 rounded bg-slate-900 text-slate-300 border border-slate-800">Pandas</span>
+                        <span class="px-2.5 py-1 rounded bg-slate-900 text-slate-300 border border-slate-800">NumPy</span>
+                        <span class="px-2.5 py-1 rounded bg-slate-900 text-slate-300 border border-slate-800">Scikit-Learn</span>
+                        <span class="px-2.5 py-1 rounded bg-slate-900 text-slate-300 border border-slate-800">Streamlit</span>
+                        <span class="px-2.5 py-1 rounded bg-slate-900 text-slate-300 border border-slate-800">HTML/CSS</span>
+                    </div>
+                </div>
+
+                <!-- Project 2: Weather Prediction Application -->
+                <div class="glass-panel glass-panel-interactive rounded-2xl p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-2.5 py-1 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 text-xs font-mono font-semibold">
+                                REAL-TIME API / ANALYTICS
+                            </span>
+                            <span class="text-xs font-mono text-slate-500">Live Forecasting</span>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors">
+                            Weather Prediction Application
+                        </h3>
+
+                        <p class="text-sm text-slate-300 leading-relaxed mb-6">
+                            Developed a dynamic weather forecasting application displaying real-time weather metrics. Integrated third-party weather APIs for live telemetry data and designed an intuitive interface for seamless user interaction.
+                        </p>
+
+                        <!-- Key Highlights -->
+                        <ul class="space-y-2 text-xs text-slate-400 font-mono mb-6">
+                            <li class="flex items-center gap-2">
+                                <span class="text-purple-400">►</span> Real-time weather data parsing
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-purple-400">►</span> Dynamic API integration &amp; error handling
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-purple-400">►</span> Responsive user interface design
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Tech Stack Tags -->
+                    <div class="pt-4 border-t border-slate-800/80 flex flex-wrap gap-2 font-mono text-xs">
+                        <span class="px-2.5 py-1 rounded bg-slate-900 text-slate-300 border border-slate-800">Python</span>
+                        <span class="px-2.5 py-1 rounded bg-slate-900 text-slate-300 border border-slate-800">API Integration</span>
+                        <span class="px-2.5 py-1 rounded bg-slate-900 text-slate-300 border border-slate-800">JSON Parsing</span>
+                        <span class="px-2.5 py-1 rounded bg-slate-900 text-slate-300 border border-slate-800">UI Design</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- INTERNSHIPS & SKILLS BENTO GRID -->
+        <section id="experience" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left: Internship Experience (7 Cols) -->
+            <div class="lg:col-span-7 glass-panel rounded-2xl p-6 sm:p-8 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <span class="font-mono text-xs text-cyan-400 uppercase tracking-widest">// INDUSTRY_EXPERIENCE</span>
+                            <h2 class="text-2xl font-bold text-white tracking-tight">Internship</h2>
+                        </div>
+                        <span class="px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-mono">
+                            VERIFIED
+                        </span>
+                    </div>
+
+                    <!-- Internship Item -->
+                    <div class="relative pl-6 border-l-2 border-cyan-500/40 space-y-3 my-4">
+                        <div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-slate-950 border-2 border-cyan-400"></div>
+                        
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <h3 class="text-lg font-bold text-white">DATA SCIENTIST INTERN</h3>
+                            <span class="font-mono text-xs text-cyan-400 font-medium">PIXEL FLOW LABS</span>
+                        </div>
+
+                        <p class="text-sm text-slate-300 leading-relaxed pt-1">
+                            Built and evaluated machine learning models for predictive analytics and classification tasks. Worked extensively with Python core libraries including NumPy, Pandas, and Scikit-learn for data analysis and predictive model development.
+                        </p>
+
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">Predictive Analytics</span>
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">Classification</span>
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">NumPy / Pandas</span>
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">Scikit-learn</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Position of Responsibility -->
+                <div class="mt-8 pt-6 border-t border-slate-800/80">
+                    <span class="font-mono text-xs text-purple-400 uppercase tracking-widest block mb-2">// LEADERSHIP_&amp;_FELLOWSHIP</span>
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                        <div class="flex items-center justify-between mb-1">
+                            <h4 class="font-bold text-white text-sm">Udayan Shalini Fellowship</h4>
+                            <span class="font-mono text-xs text-purple-400">5 Years Active Member</span>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Organized an IT hub on the USF (Udayan Care) organization. Active contributing member of USF organization for 5 years, leading technical initiatives and community engagement.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Education & Technical Skill Radar Matrix (5 Cols) -->
+            <div class="lg:col-span-5 glass-panel rounded-2xl p-6 sm:p-8 flex flex-col justify-between space-y-6">
+                <!-- Education -->
+                <div>
+                    <span class="font-mono text-xs text-cyan-400 uppercase tracking-widest block mb-4">// ACADEMIC_BACKGROUND</span>
+                    
+                    <div class="space-y-4">
+                        <!-- Degree -->
+                        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                            <div class="text-xs font-mono text-slate-400">EXPECTED GRADUATION: 2027</div>
+                            <div class="font-bold text-white text-base mt-0.5">B.Tech – Computer Science Engineering</div>
+                            <div class="text-xs text-cyan-400 font-mono mt-1">Specialization in AI &amp; Machine Learning</div>
+                        </div>
+
+                        <!-- Class XII -->
+                        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-mono text-slate-400">XII (PSEB) • 2023</div>
+                                <div class="font-bold text-white text-sm">KMV SCHOOL, PHAGWARA</div>
+                            </div>
+                            <div class="font-mono font-bold text-lg text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded border border-emerald-500/20">
+                                70%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skill Matrix Deck -->
+                <div>
+                    <span class="font-mono text-xs text-purple-400 uppercase tracking-widest block mb-3">// TECHNICAL_STACK</span>
+                    
+                    <div class="space-y-3 font-mono text-xs">
+                        <div>
+                            <div class="flex justify-between text-slate-300 mb-1">
+                                <span>Python &amp; ML Stack</span>
+                                <span class="text-cyan-400">Scikit-Learn, Pandas, NumPy</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 w-[92%]"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-slate-300 mb-1">
+                                <span>Data Structures &amp; Algorithms</span>
+                                <span class="text-purple-400">Core Foundations</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 w-[88%]"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-slate-300 mb-1">
+                                <span>Data Analysis &amp; Preprocessing</span>
+                                <span class="text-emerald-400">Data Cleansing &amp; Pipeline</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 w-[90%]"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-slate-300 mb-1">
+                                <span>Web &amp; UI Integrations</span>
+                                <span class="text-amber-400">Streamlit, HTML, CSS, APIs</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-amber-500 to-orange-500 w-[85%]"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- TERMINAL CONTACT SECTION -->
+        <section id="contact" class="glass-panel rounded-2xl p-6 sm:p-10 relative overflow-hidden">
+            <div class="max-w-3xl mx-auto text-center space-y-6">
+                
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-xs">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                    <span>READY FOR INQUIRIES &amp; OPPORTUNITIES</span>
+                </div>
+
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                    Let's Connect &amp; Build <span class="text-gradient">Intelligent AI Solutions</span>
+                </h2>
+
+                <p class="text-sm sm:text-base text-slate-300 max-w-xl mx-auto font-normal">
+                    Currently seeking opportunities in Machine Learning, AI Engineering, and Data Science. Reach out directly via terminal nodes below.
+                </p>
+
+                <!-- Interactive Copy Buttons Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 max-w-xl mx-auto font-mono text-xs">
+                    <!-- Copy Email Button -->
+                    <button onclick="copyToClipboard('Taniyakuamri8219@gmail.com', 'Email')" class="p-4 bg-slate-900/90 rounded-xl border border-slate-800 hover:border-cyan-400 hover:bg-slate-800/80 transition-all text-left flex items-center justify-between group">
+                        <div>
+                            <span class="text-slate-500 block text-[10px] uppercase">DIRECT EMAIL</span>
+                            <span class="text-slate-200 font-semibold group-hover:text-cyan-300 transition-colors">Taniyakuamri8219@gmail.com</span>
+                        </div>
+                        <svg class="w-5 h-5 text-slate-500 group-hover:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    </button>
+
+                    <!-- Copy Phone Button -->
+                    <button onclick="copyToClipboard('+918219539564', 'Phone number')" class="p-4 bg-slate-900/90 rounded-xl border border-slate-800 hover:border-purple-400 hover:bg-slate-800/80 transition-all text-left flex items-center justify-between group">
+                        <div>
+                            <span class="text-slate-500 block text-[10px] uppercase">PHONE / MOBILE</span>
+                            <span class="text-slate-200 font-semibold group-hover:text-purple-300 transition-colors">(+91) 8219539564</span>
+                        </div>
+                        <svg class="w-5 h-5 text-slate-500 group-hover:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Social Link Bar -->
+                <div class="flex justify-center items-center gap-6 pt-4 font-mono text-xs">
+                    <a href="https://github.com/taniya19231" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1.5">
+                        <span>github.com/taniya19231</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    </a>
+                    <span class="text-slate-700">•</span>
+                    <a href="https://linkedin.com/in/taniya-kumari" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1.5">
+                        <span>linkedin.com/in/taniya-kumari</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    </a>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="text-center font-mono text-xs text-slate-600 pt-4 pb-8 flex flex-col sm:flex-row justify-between items-center border-t border-slate-900 gap-2">
+            <div>© 2026 TANIYA KUMARI. ALL RIGHTS RESERVED.</div>
+            <div>DESIGNED FOR AI &amp; ML SPECIALIZATION</div>
+        </footer>
+
+    </main>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none glass-panel border border-cyan-500/50 text-cyan-300 font-mono text-xs px-4 py-3 rounded-lg shadow-2xl flex items-center space-x-2">
+        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        <span id="toast-msg">Copied to clipboard!</span>
+    </div>
+
+    <!-- JAVASCRIPT: NEURAL CANVAS & AI SIMULATION LOGIC -->
+    <script>
+        // Copy to clipboard fallback function
+        function copyToClipboard(text, label) {
+            const tempInput = document.createElement('input');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                showToast(`${label} copied to clipboard!`);
+            } catch (err) {
+                showToast('Failed to copy');
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            toastMsg.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // ==========================================
+        // NEURAL NETWORK BACKGROUND CANVAS ANIMATION
+        // ==========================================
+        const canvas = document.getElementById('neuralCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let particles = [];
+        let mouse = { x: null, y: null, radius: 150 };
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initParticles();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+        window.addEventListener('mouseleave', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.8;
+                this.vy = (Math.random() - 0.5) * 0.8;
+                this.radius = Math.random() * 1.8 + 1;
+                this.color = Math.random() > 0.5 ? '#06b6d4' : '#818cf8';
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+
+                // Mouse interaction distance
+                if (mouse.x && mouse.y) {
+                    const dx = mouse.x - this.x;
+                    const dy = mouse.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < mouse.radius) {
+                        const angle = Math.atan2(dy, dx);
+                        const force = (mouse.radius - dist) / mouse.radius;
+                        this.x -= Math.cos(angle) * force * 2;
+                        this.y -= Math.sin(angle) * force * 2;
+                    }
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = Math.min(Math.floor((width * height) / 18000), 70);
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateNeuralCanvas() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw connecting mesh lines
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(6, 182, 212, ${1 - dist / 120})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateNeuralCanvas);
+        }
+
+        // Initialize Canvas on Load
+        window.onload = function() {
+            resizeCanvas();
+            animateNeuralCanvas();
+            runWaterAnalysisSimulation(); // Run initial model evaluation
+        };
+
+        // ==========================================
+        // WATER ANALYZER ML INFERENCE SIMULATOR LOGIC
+        // ==========================================
+        const phRange = document.getElementById('ph-range');
+        const turbRange = document.getElementById('turb-range');
+        const doRange = document.getElementById('do-range');
+        const tdsRange = document.getElementById('tds-range');
+
+        const phVal = document.getElementById('ph-val');
+        const turbVal = document.getElementById('turb-val');
+        const doVal = document.getElementById('do-val');
+        const tdsVal = document.getElementById('tds-val');
+
+        const runBtn = document.getElementById('run-inference-btn');
+        const resultStatus = document.getElementById('result-status');
+        const resultConfidence = document.getElementById('result-confidence');
+        const resultExplanation = document.getElementById('result-explanation');
+
+        // Update Slider UI Indicators
+        [
+            { slider: phRange, display: phVal },
+            { slider: turbRange, display: turbVal },
+            { slider: doRange, display: doVal },
+            { slider: tdsRange, display: tdsVal }
+        ].forEach(item => {
+            item.slider.addEventListener('input', () => {
+                item.display.textContent = item.slider.value;
+                runWaterAnalysisSimulation();
+            });
+        });
+
+        runBtn.addEventListener('click', runWaterAnalysisSimulation);
+
+        function runWaterAnalysisSimulation() {
+            const ph = parseFloat(phRange.value);
+            const turb = parseFloat(turbRange.value);
+            const dissolvedOxygen = parseFloat(doRange.value);
+            const tds = parseFloat(tdsRange.value);
+
+            // Simulation Classification Logic mimicking trained decision rules
+            let score = 100;
+            let risks = [];
+
+            // pH check (Optimal: 6.5 - 8.5)
+            if (ph < 6.5 || ph > 8.5) {
+                const diff = ph < 6.5 ? 6.5 - ph : ph - 8.5;
+                score -= diff * 18;
+                risks.push(`pH Level (${ph}) outside safe limits (6.5-8.5)`);
+            }
+
+            // Turbidity check (Optimal < 5 NTU)
+            if (turb > 5) {
+                score -= (turb - 5) * 8;
+                risks.push(`High Turbidity (${turb} NTU > 5 NTU limit)`);
+            }
+
+            // Dissolved Oxygen (Optimal > 5.0 mg/L)
+            if (dissolvedOxygen < 5.0) {
+                score -= (5.0 - dissolvedOxygen) * 15;
+                risks.push(`Low Dissolved Oxygen (${dissolvedOxygen} mg/L)`);
+            }
+
+            // TDS check (Optimal < 500 ppm)
+            if (tds > 500) {
+                score -= ((tds - 500) / 700) * 25;
+                risks.push(`Elevated TDS (${tds} ppm > 500 ppm standard)`);
+            }
+
+            score = Math.max(15, Math.min(99.2, score));
+            const isPotable = score >= 65;
+
+            // Render Output
+            if (isPotable) {
+                resultStatus.textContent = "POTABLE";
+                resultStatus.className = "text-2xl font-black tracking-wider text-emerald-400";
+                resultExplanation.textContent = risks.length > 0 
+                    ? `Potable with minor deviations: ${risks.join(', ')}.` 
+                    : "Water metrics strictly adhere to WHO potable drinking standards.";
+            } else {
+                resultStatus.textContent = "UNSAFE";
+                resultStatus.className = "text-2xl font-black tracking-wider text-rose-500";
+                resultExplanation.textContent = `Unsafe for consumption due to: ${risks.join('; ')}.`;
+            }
+
+            resultConfidence.textContent = `${score.toFixed(1)}% QUALITY SCORE`;
+
+            // Draw Confidence Ring Chart
+            drawConfidenceRing(score, isPotable ? '#10b981' : '#f43f5e');
+        }
+
+        // Dynamic Chart Rendering
+        function drawConfidenceRing(score, colorHex) {
+            const chartCanvas = document.getElementById('confidenceChart');
+            if (!chartCanvas) return;
+            const cCtx = chartCanvas.getContext('2d');
+            const size = chartCanvas.width;
+            const center = size / 2;
+            const radius = 58;
+
+            cCtx.clearRect(0, 0, size, size);
+
+            // Background Ring
+            cCtx.beginPath();
+            cCtx.arc(center, center, radius, 0, Math.PI * 2);
+            cCtx.strokeStyle = 'rgba(30, 41, 59, 0.8)';
+            cCtx.lineWidth = 10;
+            cCtx.stroke();
+
+            // Active Confidence Arc
+            const percentage = score / 100;
+            const startAngle = -Math.PI / 2;
+            const endAngle = startAngle + (Math.PI * 2 * percentage);
+
+            cCtx.beginPath();
+            cCtx.arc(center, center, radius, startAngle, endAngle);
+            cCtx.strokeStyle = colorHex;
+            cCtx.lineWidth = 10;
+            cCtx.lineCap = 'round';
+            cCtx.stroke();
+        }
+    </script>
+</body>
+</html>
